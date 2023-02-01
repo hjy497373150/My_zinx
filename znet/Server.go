@@ -1,8 +1,10 @@
 package znet
 
 import (
+	"errors"
 	"fmt"
 	"net"
+
 	"github.com/hjy497373150/My_zinx/ziface"
 )
 
@@ -12,6 +14,18 @@ type Server struct {
 	IPVersion string //服务器绑定的ip版本
 	IP string // 服务器监听的ip
 	Port int // 服务器监听的端口
+}
+
+// 定义当前客户端链接所绑定的handle api（目前这个api是写死的，以后优化应该由用户自定义handle）
+func CallbackToClient(conn *net.TCPConn, data []byte, cnt int) error {
+	// 回显业务
+	fmt.Println("[Conn Handle] CallBackToColient...")
+
+	if _,err := conn.Write(data[:cnt]);err!=nil {
+		fmt.Println("Write back buf error ",err)
+		return errors.New("CallBackToClient error")
+	}
+	return nil
 }
 
 // 启动服务器
@@ -35,6 +49,8 @@ func (s *Server) Start() {
 		//已经监听成功
 		fmt.Println("Start Zinx server  ", s.Name, " success, now listenning...")
 
+		var cid uint32
+		cid = 0
 		// 3.阻塞的等待客户端链接，处理客户端业务
 		for {
 			// 如果有客户端链接过来，阻塞会返回
@@ -44,24 +60,10 @@ func (s *Server) Start() {
 				continue
 			}
 
-			// 已经与客户端建立链接，做一些业务
-			go func ()  {
-				for {
-					buf := make([]byte, 1024)
-					cnt,err := conn.Read(buf)
-					if err != nil {
-						fmt.Println("Read buf error ",err)
-						return
-					}
+			dealconn := NewConnection(conn, cid, CallbackToClient)
+			cid++
 
-					fmt.Printf("Receive client buf: %s,cnt: %d\n",buf,cnt)
-
-					if _,err := conn.Write(buf[:cnt]);err!=nil {
-						fmt.Println("Write back buf error ",err)
-						return
-					}
-				}
-			}()
+			go dealconn.Start()
 
 		}
 	}()
