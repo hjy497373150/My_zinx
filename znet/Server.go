@@ -31,6 +31,8 @@ func (s *Server) Start() {
 			fmt.Println("Listen ",s.IPVersion,"error ",err)
 			return
 		}
+		//已经监听成功
+		fmt.Println("Start Zinx server  ", s.Name, " success, now listenning...")
 
 		// 3.阻塞的等待客户端链接，处理客户端业务
 		for {
@@ -47,12 +49,12 @@ func (s *Server) Start() {
 				cnt,err := conn.Read(buf)
 				if err != nil {
 					fmt.Println("Read buf error ",err)
-					continue
+					return
 				}
 
 				if _,err :=conn.Write(buf[:cnt]);err!=nil {
 					fmt.Println("Write back buf error ",err)
-					continue
+					return
 				}
 			}()
 
@@ -77,7 +79,7 @@ func (s *Server) Serve() {
 	select{}
 }
 
-func NewServer(name string)  ziface.Iserver {
+func NewServer(name string)  ziface.IServer {
 	s := &Server{
 		Name: name,
 		IPVersion: "tcp4",
