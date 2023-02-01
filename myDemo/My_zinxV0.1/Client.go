@@ -29,7 +29,7 @@ func main() {
 			continue
 		}
 
-		// 接收服务器的回显
+		// 3.接收服务器的回显
 		buf := make([]byte, 1024)
 		cnt,err := conn.Read(buf)
 		if err != nil {
