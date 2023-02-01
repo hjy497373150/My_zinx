@@ -17,6 +17,7 @@ type Server struct {
 // 启动服务器
 func (s *Server) Start() {
 	fmt.Printf("[Start] Server Listener at IP : %s, Port: %d is starting\n",s.IP, s.Port)
+
 	go func ()  {
 		// 1.获取一个TCP的addr
 		addr,err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d",s.IP,s.Port))
@@ -45,12 +46,14 @@ func (s *Server) Start() {
 
 			// 已经与客户端建立链接，做一些业务
 			go func ()  {
-				buf := make([]byte, 512)
+				buf := make([]byte, 1024)
 				cnt,err := conn.Read(buf)
 				if err != nil {
 					fmt.Println("Read buf error ",err)
 					return
 				}
+
+				fmt.Printf("Receive client buf: %s,cnt: %d\n",buf,cnt)
 
 				if _,err :=conn.Write(buf[:cnt]);err!=nil {
 					fmt.Println("Write back buf error ",err)
@@ -83,8 +86,8 @@ func NewServer(name string)  ziface.IServer {
 	s := &Server{
 		Name: name,
 		IPVersion: "tcp4",
-		IP: "0,0,0,0",
-		Port: 8999,
+		IP: "127.0.0.1",
+		Port: 8888,
 	}
 	return s
 }
