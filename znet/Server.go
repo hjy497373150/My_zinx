@@ -38,7 +38,7 @@ func (s *Server) Start() {
 		// 3.阻塞的等待客户端链接，处理客户端业务
 		for {
 			// 如果有客户端链接过来，阻塞会返回
-			conn,err := listener.Accept()
+			conn,err := listener.AcceptTCP()
 			if err != nil {
 				fmt.Println("Listener accept error ",err)
 				continue
@@ -46,18 +46,20 @@ func (s *Server) Start() {
 
 			// 已经与客户端建立链接，做一些业务
 			go func ()  {
-				buf := make([]byte, 1024)
-				cnt,err := conn.Read(buf)
-				if err != nil {
-					fmt.Println("Read buf error ",err)
-					return
-				}
+				for {
+					buf := make([]byte, 1024)
+					cnt,err := conn.Read(buf)
+					if err != nil {
+						fmt.Println("Read buf error ",err)
+						return
+					}
 
-				fmt.Printf("Receive client buf: %s,cnt: %d\n",buf,cnt)
+					fmt.Printf("Receive client buf: %s,cnt: %d\n",buf,cnt)
 
-				if _,err :=conn.Write(buf[:cnt]);err!=nil {
-					fmt.Println("Write back buf error ",err)
-					return
+					if _,err := conn.Write(buf[:cnt]);err!=nil {
+						fmt.Println("Write back buf error ",err)
+						return
+					}
 				}
 			}()
 
@@ -87,7 +89,7 @@ func NewServer(name string)  ziface.IServer {
 		Name: name,
 		IPVersion: "tcp4",
 		IP: "127.0.0.1",
-		Port: 8888,
+		Port: 8999,
 	}
 	return s
 }
