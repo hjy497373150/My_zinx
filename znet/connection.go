@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/hjy497373150/My_zinx/utils"
 	"github.com/hjy497373150/My_zinx/ziface"
 )
 
@@ -38,7 +39,7 @@ func (c *Connection)StartReader() {
 	defer c.Stop() // defer工作原理 多个defer按栈的原理先后执行
 	for {
 		// 读取客户端的数据到buf中
-		buf := make([]byte, 1024)
+		buf := make([]byte, utils.GlobalObject.MaxPackageSize)
 		_, err := c.Conn.Read(buf)
 		if err != nil {
 			fmt.Println("Receive buf error",err)

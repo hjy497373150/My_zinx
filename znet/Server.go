@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/hjy497373150/My_zinx/utils"
 	"github.com/hjy497373150/My_zinx/ziface"
 )
 
@@ -19,7 +20,11 @@ type Server struct {
 
 // 启动服务器
 func (s *Server) Start() {
-	fmt.Printf("[Start] Server Listener at IP : %s, Port: %d is starting\n",s.IP, s.Port)
+	fmt.Printf("[START] Server name: %s,listenner at IP: %s, Port %d is starting\n", s.Name, s.IP, s.Port)
+	fmt.Printf("[Zinx] Version: %s, MaxConn: %d,  MaxPacketSize: %d\n",
+		utils.GlobalObject.Version,
+		utils.GlobalObject.MaxConn,
+		utils.GlobalObject.MaxPackageSize)
 
 	go func ()  {
 		// 1.获取一个TCP的addr
@@ -38,8 +43,7 @@ func (s *Server) Start() {
 		//已经监听成功
 		fmt.Println("Start Zinx server  ", s.Name, " success, now listenning...")
 
-		var cid uint32
-		cid = 0
+		var cid uint32 = 0
 		// 3.阻塞的等待客户端链接，处理客户端业务
 		for {
 			// 如果有客户端链接过来，阻塞会返回
@@ -79,15 +83,16 @@ func (s *Server) Serve() {
 func (s *Server) AddRouter(router ziface.IRouter) {
 	s.Router = router
 	fmt.Println("Add Router success...")
-
+	
 }
 
-func NewServer(name string)  ziface.IServer {
+func NewServer(name string) ziface.IServer {
+	utils.GlobalObject.Reload() //加载配置模块
 	s := &Server{
-		Name: name,
+		Name:utils.GlobalObject.Name,
 		IPVersion: "tcp4",
-		IP: "127.0.0.1",
-		Port: 8999,
+		IP: utils.GlobalObject.Host,
+		Port: utils.GlobalObject.TcpPort,
 		Router: nil,
 	}
 	return s
