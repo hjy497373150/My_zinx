@@ -1,10 +1,11 @@
 package znet
 
 import (
+	"errors"
 	"fmt"
+	"io"
 	"net"
 
-	"github.com/hjy497373150/My_zinx/utils"
 	"github.com/hjy497373150/My_zinx/ziface"
 )
 
@@ -39,17 +40,37 @@ func (c *Connection)StartReader() {
 	defer c.Stop() // defer工作原理 多个defer按栈的原理先后执行
 	for {
 		// 读取客户端的数据到buf中
-		buf := make([]byte, utils.GlobalObject.MaxPackageSize)
-		_, err := c.Conn.Read(buf)
+
+		// 创建封包拆包的对象
+		dp := NewDataPack()
+		// 读取客户端Msg Head二进制流 8字节
+		headData := make([]byte, dp.GetHeadLen())
+		if _,err := io.ReadFull(c.Conn,headData);err!=nil {
+			fmt.Println("Read headData error ",err)
+			break
+		} 
+
+		// 拆包得到datalen和id 放在msg消息中
+		msg,err := dp.UnPack(headData)
 		if err != nil {
-			fmt.Println("Receive buf error",err)
-			continue
+			fmt.Println("Unpack error...",err)
+			break
 		}
 
+		// 根据datalen再次读取data 放在msg.data中
+		var data []byte
+		if msg.GetMsgLen() > 0 {
+			data = make([]byte, msg.GetMsgLen())
+			if _,err := io.ReadFull(c.Conn,data);err!=nil {
+				fmt.Println("Read msg data error ",err)
+				break
+			}
+		}
+		msg.SetData(data)
 		// 得到当前conn数据的Request请求数据
 		req := Request{
 			Conn: c,
-			Data: buf,
+			Msg: msg,
 		}
 
 		// 从路由中，找到绑定的conn对应的router调用
@@ -99,6 +120,26 @@ func (c *Connection)RemoteAddr() net.Addr {
 }
 
 // 发送数据给远程的客户端
-func (c *Connection) Send(data []byte) error {
+func (c *Connection) SendMsg(msgId uint32, data []byte) error {
+	if c.isClosed == true {
+		return errors.New("Conn is closed when send msg")
+	}
+
+	// 将data进行封包
+	dp := NewDataPack()
+
+	binaryMsg,err := dp.Pack(NewMessage(msgId,data))
+	if err != nil {
+		fmt.Println("Pack error msg id = ",msgId)
+		return errors.New("Pack error msg")
+	}
+
+	// 将数据发送给客户端
+	if _,err := c.Conn.Write(binaryMsg);err != nil {
+		fmt.Println("Write error msg id = ",msgId)
+		return errors.New("Write error msg")
+	}
+
+
 	return nil
 }
