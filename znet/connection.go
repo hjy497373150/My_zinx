@@ -19,6 +19,7 @@ type Connection struct {
 	isClosed bool // 当前的链接状态（是否关闭
 	ExitChan chan bool // 告知当前链接已经退出/停止 channel
 	MsgHandle ziface.ImsgHandle// 消息的管理msgId和对应的处理业务Api关系
+	MsgChan chan []byte // 读写分离使用，用于读写gorountine通信的无缓冲数据通道
 }
 
 // 初始化链接模块的方法
@@ -29,14 +30,15 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandle ziface.ImsgHandle
 		isClosed: false,
 		ExitChan: make(chan bool, 1),
 		MsgHandle: msgHandle,
+		MsgChan: make(chan []byte),
 	}
 
 	return c
 }
 
 func (c *Connection)StartReader() {
-	fmt.Println("Reader Gorountine is running...")
-	defer fmt.Println("connID = ",c.ConnID, " Reader is exit, remote addr is ", c.RemoteAddr().String())
+	fmt.Println("[Reader Gorountine is running...]")
+	defer fmt.Println("[Reader is exit] connID = ",c.ConnID, ", remote addr is ", c.RemoteAddr().String())
 	defer c.Stop() // defer工作原理 多个defer按栈的原理先后执行
 	for {
 		// 读取客户端的数据到buf中
@@ -79,12 +81,37 @@ func (c *Connection)StartReader() {
 	}
 }
 
+/*
+	写消息goroutine，将数据从channel中拿出来发给客户端
+*/
+func (c *Connection)StartWriter() {
+	fmt.Println("[Writer Gorountine is running...]")
+	defer fmt.Println("[Writer is exit] connID = ",c.ConnID, ", remote addr is ", c.RemoteAddr().String())
+
+	for {
+		select {
+		case data := <-c.MsgChan:
+			// 有数据要发给客户端
+			if _,err := c.Conn.Write(data);err != nil {
+				fmt.Println("send msg error ",err," Conn Writer exit")
+				return
+			}
+		case <- c.ExitChan:
+			// Conn已经关闭（由StartReader结束的defer调用c.stop确定
+			return
+		}
+	}
+}
+
 // 启动链接，让当前的链接准备开始工作
 func (c *Connection)Start(){
 	fmt.Println("Conn Start()... connID = ",c.ConnID)
 
 	// 启动从当前链接读数据的业务
 	go c.StartReader()
+
+	// 启动从当前链接写数据的业务
+	go c.StartWriter()
 } 
 
 // 关闭链接，结束当前链接工作
@@ -97,7 +124,13 @@ func (c *Connection)Stop() {
 
 	c.isClosed = true
 
+	// 关闭socket链接
+	c.Conn.Close()
+	// 告知writer关闭
+	c.ExitChan <- true
+	// 回收资源
 	close(c.ExitChan)
+	close(c.MsgChan)
 }
 
 // 获取当前绑定的TCP socket conn
@@ -130,11 +163,9 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 		return errors.New("Pack error msg")
 	}
 
-	// 将数据发送给客户端
-	if _,err := c.Conn.Write(binaryMsg);err != nil {
-		fmt.Println("Write error msg id = ",msgId)
-		return errors.New("Write error msg")
-	}
+
+	// 将数据发给Msgchan
+	c.MsgChan <- binaryMsg 
 
 
 	return nil

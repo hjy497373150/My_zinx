@@ -1,0 +1,8 @@
+{
+    "Name" : "myzinx V0.7 demoServer",
+    "Version" : "V0.7",
+    "TcpPort": 8888,
+    "Host": "127.0.0.1",
+    "MaxConn": 3,
+    "MaxPackageSize": 1024
+}
