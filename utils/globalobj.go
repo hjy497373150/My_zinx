@@ -28,7 +28,13 @@ type GlobalObj struct {
 	Version string // 当前myzinx的版本号
 	MaxConn int // 当前服务器主机允许的最大链接数
 	MaxPackageSize uint32 // 当前Zinx框架数据包的最大值
+	WorkerPoolSize uint32 //业务工作Worker池的数量
+	MaxWorkTaskLen uint32 //每一个业务工作Worker池对应的消息队列的最大长度
 
+	/*
+		config file path
+	*/
+	ConfFilePath string
 }
 
 // 从myzinx.json去加载用于自定义的参数
@@ -53,11 +59,14 @@ func init() {
 	// 如果配置文件没有加载，默认值
 	GlobalObject := &GlobalObj{
 		Name: "MyZinxServer",
-		Version: "V0.7",
+		Version: "V0.8",
 		TcpPort: 8888,
 		Host: "127.0.0.1",
 		MaxConn: 1000,
 		MaxPackageSize: 4096,
+		WorkerPoolSize: 10,
+		MaxWorkTaskLen: 1024,
+		ConfFilePath:  "conf/myzinx.json",
 	}
 
 	GlobalObject.Reload()

@@ -21,12 +21,16 @@ type Server struct {
 // 启动服务器
 func (s *Server) Start() {
 	fmt.Printf("[START] Server name: %s,listenner at IP: %s, Port %d is starting\n", s.Name, s.IP, s.Port)
-	fmt.Printf("[Zinx] Version: %s, MaxConn: %d,  MaxPacketSize: %d\n",
+	fmt.Printf("[Zinx] Version: %s, MaxConn: %d,  MaxPacketSize: %d, WorkPoolSize: %d\n",
 		utils.GlobalObject.Version,
 		utils.GlobalObject.MaxConn,
-		utils.GlobalObject.MaxPackageSize)
+		utils.GlobalObject.MaxPackageSize,
+		utils.GlobalObject.WorkerPoolSize)
 
 	go func ()  {
+		// 0.开启消息队列worker工作池
+		s.MsgHandler.StartWorkPool()
+
 		// 1.获取一个TCP的addr
 		addr,err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d",s.IP,s.Port))
 		if err != nil {
@@ -41,7 +45,7 @@ func (s *Server) Start() {
 			return
 		}
 		//已经监听成功
-		fmt.Println("Start Zinx server  ", s.Name, " success, now listenning...")
+		fmt.Println("Start Zinx server ", s.Name, "success, now listenning...")
 
 		var cid uint32 = 0
 		// 3.阻塞的等待客户端链接，处理客户端业务

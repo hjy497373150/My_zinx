@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 
+	"github.com/hjy497373150/My_zinx/utils"
 	"github.com/hjy497373150/My_zinx/ziface"
 )
 
@@ -75,8 +76,14 @@ func (c *Connection)StartReader() {
 			Msg: msg,
 		}
 		
-		// 从绑定好的消息和对应的处理方法中执行对应的Handle方法
-		go c.MsgHandle.DoMsgHandle(&req)
+		
+		if utils.GlobalObject.WorkerPoolSize > 0 {
+			// 已经开启了工作池机制，将消息发给Worker工作池处理
+			c.MsgHandle.SendMsgToTaskQueue(&req)
+		} else {
+			// 从绑定好的消息和对应的处理方法中执行对应的Handle方法
+			go c.MsgHandle.DoMsgHandle(&req)
+		}
 
 	}
 }
