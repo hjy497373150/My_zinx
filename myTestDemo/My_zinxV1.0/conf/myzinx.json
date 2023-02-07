@@ -1,0 +1,10 @@
+{
+    "Name" : "myzinx V1.0 demoServer",
+    "Version" : "V1.0",
+    "TcpPort": 8888,
+    "Host": "127.0.0.1",
+    "MaxConn": 3,
+    "MaxPackageSize": 1024,
+    "WorkerPoolSize": 10,
+    "MaxWorkTaskLen": 512
+}

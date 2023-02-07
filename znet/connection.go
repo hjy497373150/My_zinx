@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
 
 	"github.com/hjy497373150/My_zinx/utils"
 	"github.com/hjy497373150/My_zinx/ziface"
@@ -22,6 +23,9 @@ type Connection struct {
 	ExitChan chan bool // 告知当前链接已经退出/停止 channel
 	MsgHandle ziface.ImsgHandle// 消息的管理msgId和对应的处理业务Api关系
 	MsgChan chan []byte // 读写分离使用，用于读写gorountine通信的无缓冲数据通道
+
+	Property map[string]interface{} //链接属性
+	PropertyLock sync.RWMutex // 保护链接属性修改的读写锁
 }
 
 // 初始化链接模块的方法
@@ -34,6 +38,7 @@ func NewConnection(tcpServer ziface.IServer, conn *net.TCPConn, connID uint32, m
 		ExitChan: make(chan bool, 1),
 		MsgHandle: msgHandle,
 		MsgChan: make(chan []byte),
+		Property: make(map[string]interface{}),
 	}
 
 	// 将当前链接模块加入到链接管理器中
@@ -142,7 +147,7 @@ func (c *Connection)Stop() {
 	//==================
 	//如果用户注册了该链接的关闭回调业务，那么在此刻应该显示调用
 	c.TcpServer.CallOnConnStop(c)
-	
+
 	// 关闭socket链接
 	c.Conn.Close()
 	// 告知writer关闭
@@ -190,4 +195,37 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 
 
 	return nil
+}
+
+// 设置链接属性
+func (c *Connection) SetProperty(key string,value interface{}) {
+	c.PropertyLock.Lock()
+	defer c.PropertyLock.Unlock()
+
+	c.Property[key] = value
+}
+
+// 获取链接属性
+func (c *Connection) GetProperty(key string)(interface{}, error) {
+	c.PropertyLock.Lock()
+	defer c.PropertyLock.Unlock()
+
+	if value,ok := c.Property[key];ok {
+		return value,nil
+	} else {
+		return nil,errors.New("no property found")
+	}
+}
+
+// 移除链接属性
+func (c *Connection) RemoveProperty(key string) {
+	c.PropertyLock.Lock()
+	defer c.PropertyLock.Unlock()
+
+	if _,ok := c.Property[key];ok {
+		delete(c.Property,key)
+		fmt.Println("property key = ",key,"is removed from properties successfully")
+	} else {
+		fmt.Println("property key = ",key," not found")
+	}
 }
