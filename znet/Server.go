@@ -15,6 +15,14 @@ type Server struct {
 	IP string // 服务器监听的ip
 	Port int // 服务器监听的端口
 	MsgHandler ziface.ImsgHandle // 当前Server的消息管理模块，用来绑定MsgId和对应处理业务的Api关系
+	ConnMgr ziface.IConnManager // 当前Server的连接管理器
+	
+	// 新增两个hook函数
+	// 当前Server 链接创建后调用的hook函数
+	OnConnStart func(conn ziface.IConnection)
+	// 当前Server 链接销毁之前调用的hook函数
+	OnConnStop func(conn ziface.IConnection)
+	
 }
 
 
@@ -56,12 +64,19 @@ func (s *Server) Start() {
 				fmt.Println("Listener accept error ",err)
 				continue
 			}
+			// 如果当前已有的链接超过了最大链接，就关闭新的链接
+			if utils.GlobalObject.MaxConn <= s.ConnMgr.Len() {
+				// TODO:给客户端响应一个超出最大链接的错误包
+				fmt.Println("Too many conn,maxConn = ", utils.GlobalObject.MaxConn)
+				conn.Close()
+				continue
+			} 
 
-			dealconn := NewConnection(conn, cid, s.MsgHandler)
+			dealconn := NewConnection(s, conn, cid, s.MsgHandler)
 			cid++
 
 			go dealconn.Start()
-
+				
 		}
 	}()
 	
@@ -69,7 +84,9 @@ func (s *Server) Start() {
 
 // 停止服务器
 func (s *Server) Stop() {
-	// TODO:将一些服务器的资源、状态或者一些已经开辟的链接信息 进行停止或回收
+	// 将一些服务器的资源、状态或者一些已经开辟的链接信息 进行停止或回收
+	fmt.Println("[STOP] Myzinx Server name:",s.Name)
+	s.ConnMgr.ClearAll()
 }
 
 // 运行服务器
@@ -90,6 +107,37 @@ func (s *Server) AddRouter(msgId uint32, router ziface.IRouter) {
 	fmt.Println("Add Router success...")	
 }
 
+// 获取当前Server对应的connMgr
+func (s *Server) GetConnMgr() ziface.IConnManager {
+	return s.ConnMgr
+}
+
+// 注册该Server创建链接时的hook函数
+func (s *Server) SetOnConnStart(hookFunc func (ziface.IConnection)) {
+	s.OnConnStart = hookFunc
+}
+
+// 注册该Server销毁链接时的hook函数
+func (s *Server) SetOnConnStop(hookFunc func (ziface.IConnection)) {
+	s.OnConnStop = hookFunc
+}
+
+// 调用链接OnConnStart函数
+func (s *Server) CallOnConnStart(conn ziface.IConnection) {
+	if s.OnConnStart != nil {
+		fmt.Println("--->Call OnConnStart")
+		s.OnConnStart(conn)
+	}
+}
+
+// 调用链接OnConnStop函数
+func (s *Server) CallOnConnStop(conn ziface.IConnection) {
+	if s.OnConnStop != nil {
+		fmt.Println("--->Call OnConnstop")
+		s.OnConnStop(conn)
+	}
+}
+
 func NewServer(name string) ziface.IServer {
 	utils.GlobalObject.Reload() //加载配置模块
 	s := &Server{
@@ -98,6 +146,7 @@ func NewServer(name string) ziface.IServer {
 		IP: utils.GlobalObject.Host,
 		Port: utils.GlobalObject.TcpPort,
 		MsgHandler: NewMsgHandle(),
+		ConnMgr: NewConnManager(),
 	}
 	return s
 }

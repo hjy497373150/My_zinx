@@ -15,6 +15,7 @@ import (
 */
 
 type Connection struct {
+	TcpServer ziface.IServer // 当前链接隶属于哪个Server
 	Conn *net.TCPConn // 当前链接的TCP socket套接字
 	ConnID uint32 // 链接的ID
 	isClosed bool // 当前的链接状态（是否关闭
@@ -24,8 +25,9 @@ type Connection struct {
 }
 
 // 初始化链接模块的方法
-func NewConnection(conn *net.TCPConn, connID uint32, msgHandle ziface.ImsgHandle) *Connection {
+func NewConnection(tcpServer ziface.IServer, conn *net.TCPConn, connID uint32, msgHandle ziface.ImsgHandle) *Connection {
 	c := &Connection {
+		TcpServer: tcpServer,
 		Conn: conn,
 		ConnID: connID,
 		isClosed: false,
@@ -33,6 +35,9 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandle ziface.ImsgHandle
 		MsgHandle: msgHandle,
 		MsgChan: make(chan []byte),
 	}
+
+	// 将当前链接模块加入到链接管理器中
+	c.TcpServer.GetConnMgr().Add(c)
 
 	return c
 }
@@ -119,6 +124,9 @@ func (c *Connection)Start(){
 
 	// 启动从当前链接写数据的业务
 	go c.StartWriter()
+
+	// 按照用户传递进来的创建连接时需要处理的业务，执行钩子方法
+	c.TcpServer.CallOnConnStart(c)
 } 
 
 // 关闭链接，结束当前链接工作
@@ -131,10 +139,16 @@ func (c *Connection)Stop() {
 
 	c.isClosed = true
 
+	//==================
+	//如果用户注册了该链接的关闭回调业务，那么在此刻应该显示调用
+	c.TcpServer.CallOnConnStop(c)
+	
 	// 关闭socket链接
 	c.Conn.Close()
 	// 告知writer关闭
 	c.ExitChan <- true
+	// 从连接管理器中删除当前链接
+	c.TcpServer.GetConnMgr().Remove(c)
 	// 回收资源
 	close(c.ExitChan)
 	close(c.MsgChan)
