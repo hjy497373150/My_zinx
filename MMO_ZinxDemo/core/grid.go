@@ -42,9 +42,10 @@ func (g *Grid)AddPlayer(playerId int) {
 	// 使用写锁保护
 	g.GLock.Lock()
 	defer g.GLock.Unlock()
-
+	
 	fmt.Println("playerId = ",playerId,"is added to GridId = ",g.Gid)
 	g.PlayerIds[playerId] = true
+	
 }
 
 // 从当前格子中删除玩家

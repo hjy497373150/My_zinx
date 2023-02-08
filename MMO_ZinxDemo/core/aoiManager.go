@@ -68,3 +68,97 @@ func (aoiManager *AOIManager) String() string {
 
 	return s
 }
+
+// 根据格子的gid得到周边九宫格格子的id集合
+func (aoiManager *AOIManager) GetSurroundGridsByGid(gid int) (grids []*Grid) {
+	// 1.判断gid是否在AOIManager中
+	if _,ok := aoiManager.grids[gid];!ok {
+		return 
+	}
+	// 2.将gid对应的格子加入集合
+	grids = append(grids, aoiManager.grids[gid])
+
+	// 3.根据gid得到当前格子所在X轴编号
+	idx := gid % aoiManager.CntsX
+
+	// 4.判断idx左右还有无格子
+	if idx > 0 {
+		grids = append(grids, aoiManager.grids[gid-1])
+	}
+	if idx < aoiManager.CntsX-1 {
+		grids = append(grids, aoiManager.grids[gid+1])
+	}
+
+	// 5.将X轴上的所有格子取出，然后分别判断它们上下有没有格子
+	gidsX := make([]int,0,len(grids))
+
+	for _,grid := range grids {
+		gidsX = append(gidsX, grid.Gid)
+	}
+
+	for _,v := range gidsX {
+		// 计算该格子处于第几列
+		idy := v / aoiManager.CntsX
+		
+		if idy > 0 {
+			grids = append(grids, aoiManager.grids[v-aoiManager.CntsX])
+		}
+		if idy < aoiManager.CntsY - 1{
+			grids = append(grids, aoiManager.grids[v+aoiManager.CntsX])
+		}
+	}
+
+	return
+
+}
+
+// 通过横纵坐标得到格子编号
+func (aoiManager *AOIManager) GetGidByPos(x,y float64) int {
+	idx := (int(x) - aoiManager.MinX) / aoiManager.gridWidth()
+	idy := (int(y) - aoiManager.MinY) / aoiManager.gridHeight()
+
+	return idy * aoiManager.CntsX + idx
+}
+
+// 通过横纵坐标得到周边九宫格内全部的playerids
+func (aoiManager *AOIManager) GetSurroundGridsByPos(x,y float64) (playerIds []int) {
+	// 1.得到当前玩家的gid
+	gid := aoiManager.GetGidByPos(x,y)
+	// 2.通过gid得到周边九宫格信息
+	grids := aoiManager.GetSurroundGridsByGid(gid)
+
+	for _, grid := range grids {
+		playerIds = append(playerIds, grid.FindAllPlayer()...)
+		fmt.Printf("-----> gridId = %d,playerIds = %v -------",grid.Gid,grid.PlayerIds)
+	} 
+	return 
+}
+
+// 添加一个Player到一个格子中
+func (aoiManager *AOIManager) AddPlayerToGridById(playerId,gid int) {
+	aoiManager.grids[gid].AddPlayer(playerId)
+}
+
+// 移除一个格子中的某一个Player
+func (aoiManager *AOIManager) RemovePlayerFromGrid(playerId,gid int) {
+	aoiManager.grids[gid].RemovePlayer(playerId)
+}
+
+// 通过Gid获取全部的PlayerId
+func (aoiManager *AOIManager) GetAllPlayerByGid(gid int) (playerIds []int) {
+	playerIds = aoiManager.grids[gid].FindAllPlayer()
+
+	return 
+}
+
+// 通过坐标将Player添加到一个格子中
+func (aoiManager *AOIManager) AddPlayToGridByPos(playerId int,x,y float64) {
+	gid := aoiManager.GetGidByPos(x,y)
+	aoiManager.grids[gid].AddPlayer(playerId)
+}
+
+// 通过坐标把一个player从一个格子中删除
+func (aoiManager *AOIManager) RemovePlayFromGridByPos(playerId int,x,y float64) {
+	gid := aoiManager.GetGidByPos(x,y)
+	aoiManager.grids[gid].RemovePlayer(playerId)
+}
