@@ -1,17 +1,17 @@
 package main
 
 import (
-	"My_zinx/myTestDemo/ProtobufDemo/pb"
 	"fmt"
 
-	"github.com/golang/protobuf/proto"
+	"github.com/hjy497373150/My_zinx/myTestDemo/ProtobufDemo/pb"
+	"google.golang.org/protobuf/proto"
 )
 
 func main() {
 	person := &pb.Person{
 		Name: "klayhu",
 		Age: 23,
-		Emails: "493737150@qq.com",
+		Emails: []string{"493737150@qq.com"},
 		Phones: []*pb.PhoneNumber{
             &pb.PhoneNumber{
                 Number: "13113111311",
@@ -35,14 +35,14 @@ func main() {
 	}
 
 	// 解码
-	newdata := &pb.Person{}
-	err = proto.Unmarshal(data, newdata)
+	newperson := &pb.Person{}
+	err = proto.Unmarshal(data, newperson)
 
 	if err != nil {
 		fmt.Println("unmarshal error: ",err)
 	}
 
-	fmt.Println("源数据:",data)
-	fmt.Println("解码之后的数据",newdata)
+	fmt.Println("源数据:",person)
+	fmt.Println("解码之后的数据",newperson)
 
 }

@@ -1,6 +1,6 @@
 syntax = "proto3"; 						//指定版本信息，不指定会报错
-package pb;						//后期生成go文件的包名
 option go_package = "./";
+package pb;						//后期生成go文件的包名
 //message为关键字，作用为定义一种消息类型
 message Person {
 	string	name = 1;					//姓名
