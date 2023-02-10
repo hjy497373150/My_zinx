@@ -2,6 +2,15 @@ package core
 
 import "fmt"
 
+
+const (
+	AOI_MIN_X int = 85
+	AOI_MAX_X int = 410
+	AOI_CNTSX int = 10
+	AOI_MIN_Y int = 75
+	AOI_MAX_Y int = 400
+	AOI_CNTSY int = 20
+)
 /*
 	AOI区域管理模块
 	AOI(Area Of Interest):MMORPG游戏的核心算法之一，是服务器同步给玩家的信息区域
@@ -113,7 +122,7 @@ func (aoiManager *AOIManager) GetSurroundGridsByGid(gid int) (grids []*Grid) {
 }
 
 // 通过横纵坐标得到格子编号
-func (aoiManager *AOIManager) GetGidByPos(x,y float64) int {
+func (aoiManager *AOIManager) GetGidByPos(x,y float32) int {
 	idx := (int(x) - aoiManager.MinX) / aoiManager.gridWidth()
 	idy := (int(y) - aoiManager.MinY) / aoiManager.gridHeight()
 
@@ -121,7 +130,7 @@ func (aoiManager *AOIManager) GetGidByPos(x,y float64) int {
 }
 
 // 通过横纵坐标得到周边九宫格内全部的playerids
-func (aoiManager *AOIManager) GetSurroundGridsByPos(x,y float64) (playerIds []int) {
+func (aoiManager *AOIManager) GetSurroundGridsByPos(x,y float32) (playerIds []int) {
 	// 1.得到当前玩家的gid
 	gid := aoiManager.GetGidByPos(x,y)
 	// 2.通过gid得到周边九宫格信息
@@ -152,13 +161,13 @@ func (aoiManager *AOIManager) GetAllPlayerByGid(gid int) (playerIds []int) {
 }
 
 // 通过坐标将Player添加到一个格子中
-func (aoiManager *AOIManager) AddPlayToGridByPos(playerId int,x,y float64) {
+func (aoiManager *AOIManager) AddPlayToGridByPos(playerId int,x,y float32) {
 	gid := aoiManager.GetGidByPos(x,y)
 	aoiManager.grids[gid].AddPlayer(playerId)
 }
 
 // 通过坐标把一个player从一个格子中删除
-func (aoiManager *AOIManager) RemovePlayFromGridByPos(playerId int,x,y float64) {
+func (aoiManager *AOIManager) RemovePlayFromGridByPos(playerId int,x,y float32) {
 	gid := aoiManager.GetGidByPos(x,y)
 	aoiManager.grids[gid].RemovePlayer(playerId)
 }

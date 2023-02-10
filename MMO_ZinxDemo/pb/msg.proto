@@ -16,7 +16,7 @@ message Position{
 	float V=4;
 }
 
-//玩家广播数据
+//广播消息
 message BroadCast{
 	int32 Pid=1;
 	int32 Tp=2; // 1-世界聊天 2-玩家位置 3-动作 4-移动之后的左边信息更新
@@ -25,4 +25,9 @@ message BroadCast{
         Position P=4; // 广播玩家的位置
 		int32 ActionData=5; // 玩家具体的动作
     }
+}
+
+// 世界聊天
+message Talk {
+	string Content = 1;
 }
