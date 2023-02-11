@@ -138,7 +138,7 @@ func (aoiManager *AOIManager) GetSurroundGridsByPos(x,y float32) (playerIds []in
 
 	for _, grid := range grids {
 		playerIds = append(playerIds, grid.FindAllPlayer()...)
-		fmt.Printf("-----> gridId = %d,playerIds = %v -------",grid.Gid,grid.PlayerIds)
+		// fmt.Printf("-----> gridId = %d,playerIds = %v -------",grid.Gid,grid.PlayerIds)
 	} 
 	return 
 }

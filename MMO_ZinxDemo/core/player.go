@@ -120,11 +120,7 @@ func (p *Player) Talk(content string) {
 //同步玩家上线的位置消息
 func (p *Player)SyncSurroundings() {
 	// 1.获取当前玩家周围的玩家有哪些
-	playerIds := WorldMgrObj.AoiManager.GetSurroundGridsByPos(p.X,p.Z)
-	players := make([]*Player,0,len(playerIds))
-	for _,playerId := range playerIds {
-		players = append(players, WorldMgrObj.GetPlayerByPid(int32(playerId)))
-	}
+	players := p.GetSurroundPlayers()
 
 	// 2.将当前玩家的位置通过msgId = 200 发给周围的玩家（让其他玩家看到自己）
 	// 2.1 组建msgId：200 的proto数据 
@@ -170,4 +166,48 @@ func (p *Player)SyncSurroundings() {
 	// 3.2将组建好的protomsg数据发给当前玩家的客户端
 	p.SendMsg(202,SyncPlayer_proto_msg)
 
+}
+
+//广播当前玩家的位置移动信息
+func (p *Player)UpdataPos(x,y,z,v float32) {
+	// 1.更新当前玩家的坐标
+	p.X = x
+	p.Y = y
+	p.Z = z
+	p.V = v
+
+	// 2.组件广播proto协议，msgid = 4 tp=4
+	protoMsg := &pb.BroadCast{
+		Pid: p.PlayerId,
+		Tp: 4,
+		Data: &pb.BroadCast_P{
+			P: &pb.Position{
+				X: p.X,
+				Y: p.Y,
+				Z: p.Z,
+				V: p.V,
+			},
+		},
+	}
+
+	// 3.获得该玩家周围AOI九宫格之内的玩家
+	players := p.GetSurroundPlayers()
+
+	// 4.给周围的玩家发送当前玩家更新的消息
+	for _,player := range players {
+		player.SendMsg(200,protoMsg)
+	}
+
+}
+
+// 获取当前玩家周边AOI九宫格之内的玩家
+func (p *Player) GetSurroundPlayers() []*Player{
+	// 得到当前玩家AOI九宫格之内的玩家id
+	playerIds := WorldMgrObj.AoiManager.GetSurroundGridsByPos(p.X,p.Z)
+	//  根据玩家id获取玩家
+	players := make([]*Player,0,len(playerIds))
+	for _,playerId := range playerIds {
+		players = append(players, WorldMgrObj.GetPlayerByPid(int32(playerId)))
+	}
+	return players
 }

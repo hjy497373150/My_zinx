@@ -47,7 +47,10 @@ func main() {
 	s.SetOnConnStart(OnConnectionAdd)
 	
 	// 注册路由
+	// 世界聊天
 	s.AddRouter(2,&apis.WorldChatApi{})
+	// 玩家移动
+	s.AddRouter(3,&apis.Move{})
 	
 	//启动服务
 	s.Serve()
