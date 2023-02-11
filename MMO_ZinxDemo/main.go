@@ -31,6 +31,10 @@ func OnConnectionAdd(conn ziface.IConnection) {
 	// 将conn绑定一个playerid
 	conn.SetProperty("playerId",player.PlayerId)
 
+	// 同步周边玩家，告知他们当前玩家已上线，同步广播当前玩家的位置信息
+	player.SyncSurroundings()
+
+
 	fmt.Println("-------> Player Id = ",player.PlayerId ," 已上线")
 
 }
