@@ -39,12 +39,27 @@ func OnConnectionAdd(conn ziface.IConnection) {
 
 }
 
+// 当前客户端断开连接前的hook函数
+func OnConnectionLost(conn ziface.IConnection) {
+	// 1.通过conn得到当前链接的player
+	playerId,_ := conn.GetProperty("playerId")
+	player := core.WorldMgrObj.GetPlayerByPid(playerId.(int32))
+
+	// 2.调用玩家下线业务
+	player.Offline()
+	
+
+	fmt.Println("-------> Player Id = ",player.PlayerId ," 已下线")
+}
+
+// 当前客户端
 func main() {
 	// 创建zinx Server句柄
 	s := znet.NewServer("MMO Game Based on Zinx")
 
 	// 注册客户端建立连接和丢失函数
 	s.SetOnConnStart(OnConnectionAdd)
+	s.SetOnConnStop(OnConnectionLost)
 	
 	// 注册路由
 	// 世界聊天

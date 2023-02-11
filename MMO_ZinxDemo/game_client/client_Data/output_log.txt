@@ -25,16 +25,16 @@ desktop: 1920x1080 59Hz; virtual: 1920x1080 at 0,0
 <RI> Initializing input.
 <RI> Input initialized.
 <RI> Initialized touch support.
-UnloadTime: 0.384600 ms
+UnloadTime: 0.389700 ms
 Setting up 3 worker threads for Enlighten.
-  Thread -> id: 1b24 -> priority: 1 
-  Thread -> id: 1610 -> priority: 1 
-  Thread -> id: 1698 -> priority: 1 
+  Thread -> id: dd0 -> priority: 1 
+  Thread -> id: 23bc -> priority: 1 
+  Thread -> id: 28cc -> priority: 1 
 Unloading 6 Unused Serialized files (Serialized files now loaded: 0)
-UnloadTime: 1.921500 ms
+UnloadTime: 1.946700 ms
 
 Unloading 11 unused Assets to reduce memory usage. Loaded Objects now: 368.
-Total: 0.253800 ms (FindLiveObjects: 0.012300 ms CreateObjectMapping: 0.006200 ms MarkObjects: 0.110200 ms  DeleteObjects: 0.125000 ms)
+Total: 0.264100 ms (FindLiveObjects: 0.012700 ms CreateObjectMapping: 0.006300 ms MarkObjects: 0.115700 ms  DeleteObjects: 0.128900 ms)
 
 Parent of RectTransform is being set with parent property. Consider using the SetParent method instead, with the worldPositionStays argument set to false. This will retain local orientation and scale rather than world orientation and scale, which can prevent common UI scaling issues.
  
@@ -91,16 +91,16 @@ desktop: 1920x1080 59Hz; virtual: 1920x1080 at 0,0
 <RI> Initializing input.
 <RI> Input initialized.
 <RI> Initialized touch support.
-UnloadTime: 0.405100 ms
+UnloadTime: 0.364600 ms
 Setting up 3 worker threads for Enlighten.
-  Thread -> id: 1438 -> priority: 1 
-  Thread -> id: 1e10 -> priority: 1 
-  Thread -> id: 1e70 -> priority: 1 
+  Thread -> id: 2a88 -> priority: 1 
+  Thread -> id: 236c -> priority: 1 
+  Thread -> id: fe8 -> priority: 1 
 Unloading 6 Unused Serialized files (Serialized files now loaded: 0)
-UnloadTime: 1.937500 ms
+UnloadTime: 1.914900 ms
 
 Unloading 11 unused Assets to reduce memory usage. Loaded Objects now: 368.
-Total: 0.297000 ms (FindLiveObjects: 0.012200 ms CreateObjectMapping: 0.006200 ms MarkObjects: 0.122900 ms  DeleteObjects: 0.155300 ms)
+Total: 0.283500 ms (FindLiveObjects: 0.016000 ms CreateObjectMapping: 0.008200 ms MarkObjects: 0.125200 ms  DeleteObjects: 0.133600 ms)
 
 Parent of RectTransform is being set with parent property. Consider using the SetParent method instead, with the worldPositionStays argument set to false. This will retain local orientation and scale rather than world orientation and scale, which can prevent common UI scaling issues.
  
@@ -139,6 +139,10 @@ Start Game
 (Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 42)
 
 Parent of RectTransform is being set with parent property. Consider using the SetParent method instead, with the worldPositionStays argument set to false. This will retain local orientation and scale rather than world orientation and scale, which can prevent common UI scaling issues.
+ 
+(Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 42)
+
+Player: 2 leave home
  
 (Filename: C:/buildslave/unity/build/artifacts/generated/common/runtime/UnityEngineDebugBindings.gen.cpp Line: 42)
 
